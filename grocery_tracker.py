@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import csv
 
 class GroceryTracker:
@@ -13,7 +13,7 @@ class GroceryTracker:
         with open(self.curr_path, 'r') as csv_file:
             csv_reader = csv.DictReader(csv_file)
             for row in csv_reader:
-                self.current_groceries.append([row['grocery'], row['date_received'], row['good_until']])
+                self.current_groceries.append([row['grocery'], datetime.strptime(row['date_received'], '%Y-%m-%d').date(), datetime.strptime(row['good_until'], '%Y-%m-%d').date()])
         with open(self.ref_path, 'r') as csv_file:
             csv_reader = csv.DictReader(csv_file)
             for row in csv_reader:
@@ -37,14 +37,16 @@ class GroceryTracker:
         if input('show current groceries? (y to show): ') == 'y':
             print('grocery\t\tdate_received\t\tgood_until\t\tdays_left')
             for item in self.current_groceries:
-                print('{}\t\t{}\t\t{}'.format(item[0], item[1], item[2]))
+                days_left = (item[2] - date.today()).days
+                print('{}\t\t{}\t\t{}\t\t{}'.format(item[0], item[1], item[2], days_left))
 
 
     def add_groceries(self):
         loop_flag = input('add grocery? (n to exit): ') != 'n'
         while loop_flag:
             grocery = input('grocery: ')
-            date_received = date.today()
+            date_received = input('date (YYYY-MM-DD): ') 
+            date_received = date.today() if date_received == '' else datetime.strptime(date_received, '%Y-%m-%d').date()
 
             if grocery not in self.reference:
                 shelf_life = int(input('shelf life: '))
@@ -61,6 +63,7 @@ def main():
     # prompt action on loop
     tracker.show_groceries()
     tracker.add_groceries()
+    tracker.show_groceries()
 
     # save file
     tracker.save_files()
